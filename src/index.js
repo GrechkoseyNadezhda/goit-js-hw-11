@@ -78,7 +78,7 @@ function onLoadMoreSubmit () {
 
 
 function createMarkup(arrOfElements) {
-  return imagesMarkup = arrOfElements.map(elem => {
+  return arrOfElements.map(elem => {
 
     return `
     <div class="photo-card">
