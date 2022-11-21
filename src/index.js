@@ -1,4 +1,5 @@
 import { PixabayApi } from "./js/fetchImages";
+import markupGallery from "./templates/markupGallery.hbs";
 import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -34,17 +35,15 @@ function onSearchFormSubmit(event) {
   searchBtn.disabled = true;
 
   pixabayApi.fetchImages()
-  .then(searchResult => {
-    
+  .then(searchResult => {    
     const imagesArr = searchResult.data.hits;    
     
     if (imagesArr.length === 0) {
       Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
-
       throw new Error("Limit error");
     }
 
-    gallery.innerHTML = createMarkup(imagesArr);
+    gallery.innerHTML = markupGallery(imagesArr);
     simpleLightbox.refresh();
     Notiflix.Notify.info(`Hooray! We found ${searchResult.data.totalHits} images.`)
     if(searchResult.data.totalHits > pixabayApi.per_page) {
@@ -62,7 +61,7 @@ function onLoadMoreSubmit () {
   pixabayApi.fetchImages()
     .then(searchResult => {
       const imagesArr = searchResult.data.hits;         
-      gallery.insertAdjacentHTML('beforeend', createMarkup(imagesArr));
+      gallery.insertAdjacentHTML('beforeend', markupGallery(imagesArr));
       simpleLightbox.refresh();
       slowScroll();
       searchBtn.disabled = true;
@@ -73,49 +72,15 @@ function onLoadMoreSubmit () {
     })
     .catch(err => console.log(err))
     .finally(() => searchBtn.disabled = false)
-
-}
-
-
-function createMarkup(arrOfElements) {
-  return arrOfElements.map(elem => {
-
-    return `
-    <div class="photo-card">
-      <a href="${elem.largeImageURL}"><img src="${elem.webformatURL}" alt="${elem.tags}" loading="lazy" /></a>      
-
-      <div class="info">
-        <p class="info-item">
-          <b>Likes</b>
-          ${elem.likes}
-        </p>
-        <p class="info-item">
-          <b>Views</b>
-          ${elem.views}
-        </p>
-        <p class="info-item">
-          <b>Comments</b>
-          ${elem.comments}
-        </p>
-        <p class="info-item">
-          <b>Downloads</b>
-          ${elem.downloads}
-        </p>
-      </div>
-    </div>`
-  }).join('');
-
-  
 }
 
 function slowScroll () {
   const { height: cardHeight } = document
   .querySelector(".gallery")
   .firstElementChild.getBoundingClientRect();
-
-window.scrollBy({
-  top: cardHeight * 2,
-  behavior: "smooth",
-});
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: "smooth",
+  });
 }
 
