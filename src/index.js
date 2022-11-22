@@ -20,7 +20,7 @@ const pixabayApi = new PixabayApi()
 searchForm.addEventListener('submit', onSearchFormSubmit);
 loadMoreBtn.addEventListener('click', onLoadMoreSubmit)
 
-function onSearchFormSubmit(event) {
+async function onSearchFormSubmit(event) {
   event.preventDefault();
   gallery.innerHTML = '';
   loadMoreBtn.classList.add('is-hidden');
@@ -34,8 +34,8 @@ function onSearchFormSubmit(event) {
 
   searchBtn.disabled = true;
 
-  pixabayApi.fetchImages()
-  .then(searchResult => {    
+  try{    
+    const searchResult = await pixabayApi.fetchImages()
     const imagesArr = searchResult.data.hits;    
     
     if (imagesArr.length === 0) {
@@ -49,29 +49,26 @@ function onSearchFormSubmit(event) {
     if(searchResult.data.totalHits > pixabayApi.per_page) {
       loadMoreBtn.classList.remove('is-hidden');
     }
-  })
-  .catch(err => console.log(err))
-  .finally(() => searchBtn.disabled = false)
-
+    searchBtn.disabled = false;
+  } catch(err) {console.log(err)}
+  
   input.value = '';
 }
 
-function onLoadMoreSubmit () {
+async function onLoadMoreSubmit () {
   pixabayApi.page += 1;
-  pixabayApi.fetchImages()
-    .then(searchResult => {
+  
+    try {
+      const searchResult = await pixabayApi.fetchImages()
       const imagesArr = searchResult.data.hits;         
       gallery.insertAdjacentHTML('beforeend', markupGallery(imagesArr));
       simpleLightbox.refresh();
       slowScroll();
-      searchBtn.disabled = true;
-      if(Math.ceil(searchResult.data.totalHits / pixabayApi.per_page) === pixabayApi.page) {
+      if(Math.ceil(searchResult.data.totalHits / pixabayApi.per_page) < pixabayApi.page) {
         loadMoreBtn.classList.add('is-hidden');
         Notiflix.Notify.info("'We're sorry, but you've reached the end of search results.")
       }
-    })
-    .catch(err => console.log(err))
-    .finally(() => searchBtn.disabled = false)
+    } catch(err) {console.log(err)}
 }
 
 function slowScroll () {
